@@ -1,0 +1,42 @@
+import openai
+import speech_recognition as sr
+import pyttsx3
+import os
+
+# Initialize AI and Voice
+openai.api_key = os.getenv("OPENAI_API_KEY")
+engine = pyttsx3.init()
+
+def speak(text):
+    print(f"JARVIS: {text}")
+    engine.say(text)
+    engine.runAndWait()
+
+def listen_command():
+    r = sr.Recognizer()
+    with sr.Microphone() as source:
+        print("Listening...")
+        audio = r.listen(source)
+    try:
+        query = r.recognize_google(audio, language='en-in')
+        print(f"User said: {query}\n")
+    except Exception:
+        return "None"
+    return query.lower()
+
+# Main Automation Loop
+while True:
+    query = listen_command()
+    
+    if "open youtube" in query:
+        speak("Opening YouTube, sir.")
+        os.system("start chrome youtube.com")
+        
+    elif "jarvis" in query:
+        # Send query to LLM for smart response
+        response = openai.ChatCompletion.create(
+            model="gpt-4o",
+            messages=[{"role": "user", "content": query}]
+        )
+        reply = response.choices[0].message.content
+        speak(reply)
